@@ -84,8 +84,8 @@ def chat():
 
         # Execute SQL query
         try:
-            with DatabaseConnection() as database:
-                query_results = database.execute_query(sql_result['sql'])
+            with DatabaseConnection() as db_conn:
+                query_results = db_conn.execute_query(sql_result['sql'])
 
                 # Format response
                 response = ai_generator.format_response(query_results)
@@ -129,8 +129,8 @@ def health_check():
     """Health check endpoint"""
     try:
         # Test database connection
-        with DatabaseConnection() as database:
-            database.test_connection()
+        with DatabaseConnection() as db_conn:
+            db_conn.test_connection()
 
         # Get usage stats
         usage_stats = rate_limiter.get_usage_stats()

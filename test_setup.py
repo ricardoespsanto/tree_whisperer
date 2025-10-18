@@ -6,7 +6,7 @@ Test script to verify Tree Whisperer setup
 import sys
 import mysql.connector
 from dotenv import load_dotenv
-from config import Config
+
 from ai_sql_generator import AISQLGenerator
 from database_connection import DatabaseConnection
 from rate_limiter import RateLimiter
@@ -191,9 +191,9 @@ def main():
         print("2. Run: python app.py")
         print("3. Open: http://localhost:5000")
         return 0
-    else:
-        print("❌ Some tests failed. Please fix the issues above.")
-        return 1
+
+    print("❌ Some tests failed. Please fix the issues above.")
+    return 1
 
 if __name__ == "__main__":
     sys.exit(main())
