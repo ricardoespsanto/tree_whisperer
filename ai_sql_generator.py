@@ -113,7 +113,8 @@ class AISQLGenerator:
         if not self.is_tree_forest_related(question):
             return {
                 'success': False,
-                'error': 'I can only answer questions about trees, forests, and ecosystems. Please ask about forest data, tree species, logging records, or forest growth.',
+                'error': 'I can only answer questions about trees, forests, and ecosystems. ' \
+                'Please ask about forest data, tree species, logging records, or forest growth.',
                 'sql': None,
                 'explanation': None
             }

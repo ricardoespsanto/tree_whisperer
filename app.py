@@ -87,7 +87,7 @@ def chat():
                 query_results = database.execute_query(sql_result['sql'])
 
                 # Format response
-                response = ai_generator.format_response(question, query_results, sql_result['explanation'])
+                response = ai_generator.format_response(query_results)
 
                 # Add to conversation history
                 conversation.append({'role': 'user', 'content': question})
@@ -113,8 +113,8 @@ def chat():
                 'explanation': sql_result['explanation']
             }), 500
 
-    except Exception as e:
-        logging.error(f"Unexpected error in chat endpoint: {str(e)}")
+    except (AttributeError, ValueError) as e:
+        logging.error("Unexpected error in chat endpoint: %s", e)
         return jsonify({
             'success': False,
             'error': 'An unexpected error occurred',
@@ -128,7 +128,7 @@ def health_check():
     """Health check endpoint"""
     try:
         # Test database connection
-        with DatabaseConnection() as db:
+        with DatabaseConnection() as database:
             db.test_connection()
 
         # Get usage stats
@@ -140,7 +140,7 @@ def health_check():
             'database': 'connected',
             'usage_stats': usage_stats
         })
-    except Exception as e:
+    except (ConnectionError, AttributeError, ValueError) as e:
         return jsonify({
             'status': 'unhealthy',
             'timestamp': datetime.now().isoformat(),
@@ -153,7 +153,7 @@ def get_usage():
     try:
         stats = rate_limiter.get_usage_stats()
         return jsonify(stats)
-    except Exception as e:
+    except (AttributeError, ValueError) as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/schema', methods=['GET'])
@@ -163,15 +163,17 @@ def get_schema():
         with DatabaseConnection() as db:
             schema_info = db.get_table_info()
         return jsonify(schema_info)
-    except Exception as e:
+    except (ConnectionError, AttributeError, ValueError) as e:
         return jsonify({'error': str(e)}), 500
 
 @app.errorhandler(404)
 def not_found(error):
+    """Not found error handler"""
     return jsonify({'error': 'Endpoint not found'}), 404
 
 @app.errorhandler(500)
 def internal_error(error):
+    """Internal server error handler"""
     return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':

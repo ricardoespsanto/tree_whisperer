@@ -4,8 +4,6 @@ Demo script for Tree Whisperer
 This shows the application structure and functionality without requiring all dependencies
 """
 
-import json
-import os
 from datetime import datetime
 
 def show_project_structure():

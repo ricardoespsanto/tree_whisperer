@@ -1,14 +1,20 @@
-import redis
+"""Rate limiter module for Tree Whisperer application."""
+
 import time
 import logging
-from datetime import datetime, timedelta
-from typing import Optional
-from config import Config
-import smtplib
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import smtplib
+
+import redis
+from config import Config
+
+
+
 class RateLimiter:
+    """Rate limiter for Tree Whisperer application."""
     def __init__(self):
         self.redis_client = None
         self.logger = logging.getLogger(__name__)
@@ -20,8 +26,8 @@ class RateLimiter:
             self.redis_client = redis.from_url(Config.REDIS_URL)
             self.redis_client.ping()  # Test connection
             self.logger.info("Redis connection established")
-        except Exception as e:
-            self.logger.warning(f"Redis not available, using in-memory rate limiting: {e}")
+        except (ConnectionError, AttributeError, ValueError) as e:
+            self.logger.warning("Redis not available, using in-memory rate limiting: %s", e)
             self.redis_client = None
 
     def _get_redis_key(self, identifier: str, prefix: str) -> str:
@@ -62,8 +68,8 @@ class RateLimiter:
                 # Set current request time
                 self.redis_client.setex(key, 60, str(current_time))
                 return True
-            except Exception as e:
-                self.logger.error(f"Redis error in minute limit check: {e}")
+            except (AttributeError, ValueError) as e:
+                self.logger.error(f"Redis error in minute limit check: %s", e)
                 return True  # Fail open
         else:
             # In-memory fallback
