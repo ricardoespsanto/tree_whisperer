@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Whisperer - AI Forest Data Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem 2rem;
+            color: white;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .chat-container {
+            flex: 2;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: 600px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.assistant {
+            background: white;
+            border: 1px solid #e9ecef;
+            margin-right: auto;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-button {
+            padding: 0.75rem 1.5rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .send-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .sidebar {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar h3 {
+            color: #2c5530;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .example-questions {
+            margin-bottom: 2rem;
+        }
+
+        .example-question {
+            background: #e8f5e8;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-left: 4px solid #28a745;
+        }
+
+        .example-question:hover {
+            background: #d4edda;
+        }
+
+        .usage-stats {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .usage-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            transition: width 0.3s;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sql-display {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .sql-toggle {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌲 Tree Whisperer</h1>
+        <p>AI-Powered Forest Data Assistant - Ask questions about trees, forests, and ecosystems</p>
+    </div>
+
+    <div class="container">
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <strong>Welcome to Tree Whisperer!</strong><br>
+                    I can help you explore data about trees, forests, and ecosystems. Try asking questions like:
+                    <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                        <li>What is the tallest tree species in the database?</li>
+                        <li>How many white oaks were logged in Maine last year?</li>
+                        <li>Which forest has the highest carbon storage?</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Thinking about your question...</div>
+            </div>
+            
+            <div class="chat-input-container">
+                <form class="chat-input-form" id="chatForm">
+                    <input 
+                        type="text" 
+                        class="chat-input" 
+                        id="chatInput" 
+                        placeholder="Ask about trees, forests, or ecosystems..."
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="send-button" id="sendButton">
+                        Send
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="example-questions">
+                <h3>💡 Example Questions</h3>
+                <div class="example-question" onclick="askQuestion('What is the tallest tree species in the database?')">
+                    What is the tallest tree species in the database?
+                </div>
+                <div class="example-question" onclick="askQuestion('How many white oaks were logged in Maine last year?')">
+                    How many white oaks were logged in Maine last year?
+                </div>
+                <div class="example-question" onclick="askQuestion('Which forest region has the highest carbon storage?')">
+                    Which forest region has the highest carbon storage?
+                </div>
+                <div class="example-question" onclick="askQuestion('Compare the growth rates of pine species')">
+                    Compare the growth rates of pine species
+                </div>
+                <div class="example-question" onclick="askQuestion('What is the total area of forests in the database?')">
+                    What is the total area of forests in the database?
+                </div>
+            </div>
+
+            <div class="usage-stats">
+                <h3>📊 Usage Statistics</h3>
+                <div id="usageStats">
+                    <div>Loading usage data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isWaiting = false;
+        let sessionId = 'session_' + Date.now();
+        let userId = 'user_' + Math.random().toString(36).substr(2, 9);
+
+        // Load usage stats on page load
+        loadUsageStats();
+
+        // Set up form submission
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const question = input.value.trim();
+            
+            if (question && !isWaiting) {
+                askQuestion(question);
+                input.value = '';
+            }
+        });
+
+        // Auto-resize input
+        document.getElementById('chatInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        function askQuestion(question) {
+            if (isWaiting) return;
+            
+            // Add user message to chat
+            addMessage(question, 'user');
+            
+            // Show loading
+            showLoading(true);
+            isWaiting = true;
+            
+            // Send request to API
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: question,
+                    user_id: userId,
+                    session_id: sessionId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                isWaiting = false;
+                
+                if (data.success) {
+                    addMessage(data.response, 'assistant', data.sql, data.explanation);
+                } else {
+                    addMessage(data.error || 'An error occurred', 'error');
+                }
+                
+                // Update usage stats
+                loadUsageStats();
+            })
+            .catch(error => {
+                showLoading(false);
+                isWaiting = false;
+                addMessage('Network error. Please try again.', 'error');
+                console.error('Error:', error);
+            });
+        }
+
+        function addMessage(content, type, sql = null, explanation = null) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            let messageContent = content;
+            
+            if (sql && type === 'assistant') {
+                messageContent += `<br><br><button class="sql-toggle" onclick="toggleSQL(this)">Show SQL Query</button>`;
+                messageContent += `<div class="sql-display" style="display: none;">${sql}</div>`;
+            }
+            
+            messageDiv.innerHTML = messageContent;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function toggleSQL(button) {
+            const sqlDisplay = button.nextElementSibling;
+            if (sqlDisplay.style.display === 'none') {
+                sqlDisplay.style.display = 'block';
+                button.textContent = 'Hide SQL Query';
+            } else {
+                sqlDisplay.style.display = 'none';
+                button.textContent = 'Show SQL Query';
+            }
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            const sendButton = document.getElementById('sendButton');
+            
+            if (show) {
+                loading.style.display = 'block';
+                sendButton.disabled = true;
+                sendButton.textContent = 'Thinking...';
+            } else {
+                loading.style.display = 'none';
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+            }
+        }
+
+        function loadUsageStats() {
+            fetch('/api/usage')
+                .then(response => response.json())
+                .then(data => {
+                    const statsDiv = document.getElementById('usageStats');
+                    if (data.error) {
+                        statsDiv.innerHTML = '<div>Error loading stats</div>';
+                    } else {
+                        const percentage = data.percentage || 0;
+                        statsDiv.innerHTML = `
+                            <div>Daily Queries: ${data.daily_usage || 0} / ${data.daily_limit || 100}</div>
+                            <div class="usage-bar">
+                                <div class="usage-fill" style="width: ${Math.min(percentage, 100)}%"></div>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #6c757d; margin-top: 0.5rem;">
+                                ${percentage.toFixed(1)}% of daily limit used
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading usage stats:', error);
+                });
+        }
+
+        // Load usage stats every 30 seconds
+        setInterval(loadUsageStats, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+# Product Requirements Document: AI SQL Generation Agent
+
+| Item | Detail |
+| :--- | :--- |
+| **Project Title** | **AI SQL Generation Agent** |
+| **Document Status** | Final |
+| **Document Owner** | [Ricardo Espirito Santo/ AI consultant] |
+| **Stakeholders** | Website Owners, Database Administrator (DBA), End Users (Researchers, Gardeners, etc.) |
+| **Target Delivery** | **MVP Launch:** Q2 2026 |
+| **Version** | 1.0 |
+
+***
+
+## 1. Objective and Vision
+
+### **A. Product Vision (The North Star)**
+To **democratize access** to interesting data about trees, forests, and ecosystems, thereby **eliminating the technical barrier** and enabling non-technical users to query complex data with simple human language.
+
+### **B. Goals and Business Objectives**
+1.  **User Experience (UX):** Reduce the number of steps a human has to take to answer complex data questions (e.g., "Is forest X growing or decreasing in size?"). This will be achieved by providing **direct, human-readable answers** instead of raw data or reports.
+2.  **Efficiency/Cost:** Provide **instant access** to specific data insights, thus reducing the reliance on, and support requests directed to, the internal team (e.g., the Database Administrator or data analyst).
+3.  **Technical & Personal Learning:** Successfully develop and deploy a **fully working software solution** with **minimal manual coding intervention** from the project owner, leveraging AI/LLM technologies for the core SQL generation and data translation logic.
+
+***
+
+## 2. Target Users & Use Cases
+
+### **A. Target User Personas**
+
+1.  **The Citizen Scientist/Hobbyist:**
+    * **Goal:** To quickly find a specific, interesting fact about a tree species or local forest.
+    * **Example Question:** "How many White Oaks were logged in the state of Maine last year?"
+2.  **The Industry Professional/Researcher:**
+    * **Goal:** To analyze trends and comparative data across regions or time periods to inform their work/reports.
+    * **Example Question:** "Compare the average growth rate of pine forests in the Pacific Northwest between 2010 and 2020."
+
+### **B. Key Use Cases (User Stories)**
+
+1.  As a **Citizen Scientist**, I want to **type in a question like 'what is the tallest tree in our database?'** so that I can **get an instant answer without needing to know SQL or navigate the report system.**
+2.  As a **Researcher**, I want the chatbot to **generate a summary answer from a complex data query** so that I can **immediately pull key metrics for my report without having to download or surf large datasets.**
+
+***
+
+## 3. Core Requirements (Functional & Non-Functional)
+
+### **A. Functional Requirements (What it Does)**
+
+| Requirement (Feature) | User Story (Why) | Acceptance Criteria (How we know it works) | Priority |
+| :--- | :--- | :--- | :--- |
+| **Natural Language to SQL Translation** | Must handle complex, multi-clause queries to query the MySQL database. | **95% of all in-scope natural language questions** result in syntactically correct and semantically accurate SQL queries. | **Must-Have** |
+| **SQL Execution** | The generated query must be executed securely against the read-only database layer. | The system returns a valid data set or an appropriate error message (e.g., "No data found for this query") within **3 seconds**. | **Must-Have** |
+| **Data Translation & Summarization** | The raw SQL result must be converted into a concise, human-readable answer. | The final answer is a plain-text paragraph or bulleted list, directly answering the user's original question. | **Must-Have** |
+| **Context Retention (Follow-up)** | The agent should understand sequential questions. | The agent can correctly interpret a follow-up query like "What about fir trees?" after a query about "pine trees." | **Should-Have** |
+
+### **B. Non-Functional Requirements & Constraints (Security & Scope)**
+
+| Requirement (Constraint) | Rationale | Acceptance Criteria (Security/Audit Checklist) | Priority |
+| :--- | :--- | :--- | :--- |
+| **Domain Scope Lock-Down** | Prevent the agent from straying into general knowledge, politics, or unrelated topics. | The agent must reject or redirect all queries outside the domain of trees, forests, ecosystems, or related data. | **Must-Have** |
+| **No Speculation/Guiding Principle** | Ensure the agent acts only on available data and does not 'hallucinate' or guess answers. | When a query results in zero data from the database, the agent *must* respond with a neutral message like "I am unable to find data to answer this question." | **Must-Have** |
+| **Data Integrity (Read-Only)** | Protect the underlying database structure and data from any modification. | The database connection used by the Agent is configured with **read-only permissions**. | **Must-Have** |
+| **Ethical/Safety Guardrails** | Prevent exploitation for harmful or inappropriate content. | The LLM prompt and configuration must include explicit instructions to refuse to engage with, or generate content related to, restricted topics. | **Must-Have** |
+
+***
+
+## 4. Technical Strategy (Selection & Cost)
+
+| Item | Detail | Rationale |
+| :--- | :--- | :--- |
+| **Core LLM** | **OpenAI's GPT-3.5 Turbo (or equivalent like Gemini 1.5 Flash)** | Selected for its strong SQL generation, performance/cost ratio, and powerful context-handling. |
+| **Intermediate Language** | **Python** (with Flask/Django) | Excellent libraries for LLM API interaction, database connection, and building simple API endpoints. |
+| **Hosting Environment** | **DigitalOcean Droplet or App Platform** | Primary hosting environment. |
+| **Database Connection** | **MySQL** | Direct connection to the existing database using a secure, read-only credential. |
+| **Query Workflow** | **Chain-of-Thought Prompting** | The LLM will be instructed to **first** explain its thought process, **then** generate the SQL. |
+| **Estimated Cost Goal** | **Less than $10 USD per month** for LLM usage (based on low volume, single-user queries per day). | Cost-efficiency target. |
+
+***
+
+## 5. Security and Deployment Requirements
+
+### **A. API & Rate Limiting (Usage Exploitation)**
+
+| Requirement | Rationale | Acceptance Criteria (Definition of Done) | Priority |
+| :--- | :--- | :--- | :--- |
+| **Client-Side Throttling** | Slow down manual rapid-fire queries. | The chat interface implements a **5-second cooldown timer** after each query is submitted. | **Should-Have** |
+| **IP-Based Rate Limiting** | Prevent bot/scripted abuse of the API endpoint. | The backend API must implement a middleware to enforce a maximum of **1 query per minute (QPM)** per unique IP address. | **Must-Have** |
+| **Daily Usage Cap** | Protect against high, unexpected monthly LLM API charges. | A hard limit is set on the total number of LLM API calls per 24 hours (e.g., **100 calls/day**). The system sends an email alert to the Document Owner when 80% of the daily limit is reached. | **Must-Have** |
+
+### **B. Input Sanitization & Safety**
+
+| Requirement | Rationale | Acceptance Criteria (Definition of Done) | Priority |
+| :--- | :--- | :--- | :--- |
+| **Input Security (Injection Prevention)** | Prevent users from typing prompts designed to break the LLM's security context (Prompt Injection). | The LLM System Prompt includes strong **"jailbreak" prevention instructions**. | **Must-Have** |
+| **SQL Vetting/Parsing** | A final check to ensure the LLM hasn't hallucinated a dangerous SQL command. | An intermediate code layer uses a parser to verify that the generated SQL contains **only SELECT statements** and no modifying keywords (e.g., `DROP`, `DELETE`, `UPDATE`, `INSERT`). | **Must-Have** |
