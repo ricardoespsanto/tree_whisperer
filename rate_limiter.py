@@ -20,6 +20,7 @@ class RateLimiter:
         self.logger = logging.getLogger(__name__)
         self.daily_usage = {}
         self.last_reset = datetime.now().date()
+        self._last_requests = {}
 
         # Initialize Redis connection
         try:
@@ -69,13 +70,10 @@ class RateLimiter:
                 self.redis_client.setex(key, 60, str(current_time))
                 return True
             except (AttributeError, ValueError) as e:
-                self.logger.error(f"Redis error in minute limit check: %s", e)
+                self.logger.error("Redis error in minute limit check: %s", e)
                 return True  # Fail open
         else:
             # In-memory fallback
-            if not hasattr(self, '_last_requests'):
-                self._last_requests = {}
-
             last_time = self._last_requests.get(identifier, 0)
             if current_time - last_time < 60:
                 return False
@@ -103,8 +101,8 @@ class RateLimiter:
                     self._send_usage_alert(usage_count + 1)
 
                 return True
-            except Exception as e:
-                self.logger.error(f"Redis error in daily limit check: {e}")
+            except (AttributeError, ValueError) as e:
+                self.logger.error("Redis error in daily limit check: %s", e)
                 return True  # Fail open
         else:
             # In-memory fallback
@@ -149,10 +147,10 @@ class RateLimiter:
             server.send_message(msg)
             server.quit()
 
-            self.logger.info(f"Usage alert sent: {current_usage}/{Config.DAILY_QUERY_LIMIT}")
+            self.logger.info("Usage alert sent: %d/%d", current_usage, Config.DAILY_QUERY_LIMIT)
 
-        except Exception as e:
-            self.logger.error(f"Failed to send usage alert: {e}")
+        except (AttributeError, ValueError) as e:
+            self.logger.error("Failed to send usage alert: %e", e)
 
     def get_usage_stats(self) -> dict:
         """Get current usage statistics"""
@@ -167,8 +165,8 @@ class RateLimiter:
                     'daily_limit': Config.DAILY_QUERY_LIMIT,
                     'percentage': (usage_count / Config.DAILY_QUERY_LIMIT) * 100
                 }
-            except Exception as e:
-                self.logger.error(f"Error getting usage stats: {e}")
+            except (AttributeError, ValueError) as e:
+                self.logger.error("Error getting usage stats: %e", e)
                 return {'error': str(e)}
         else:
             today = datetime.now().date()

@@ -142,7 +142,9 @@ class AISQLGenerator:
             sql_match = re.search(r'```sql\s*(.*?)\s*```', ai_response, re.DOTALL | re.IGNORECASE)
             if not sql_match:
                 # Try to find SQL without code blocks
-                sql_match = re.search(r'(SELECT\s+.*?)(?:\n\n|\Z)', ai_response, re.DOTALL | re.IGNORECASE)
+                sql_match = re.search(
+                    r'(SELECT\s+.*?)(?:\n\n|\Z)', ai_response, re.DOTALL | re.IGNORECASE
+                )
 
             if not sql_match:
                 return {
@@ -183,7 +185,8 @@ class AISQLGenerator:
     def format_response(self, sql_result: List[Dict]) -> str:
         """Format the final response for the user"""
         if not sql_result:
-            return "I found no data matching your query. The database may not contain information for the specific criteria you mentioned."
+            return ("I found no data matching your query. The database may not contain "
+                    "information for the specific criteria you mentioned.")
 
         # Create a summary based on the results
         if len(sql_result) == 1:
@@ -192,10 +195,10 @@ class AISQLGenerator:
                 # Single value result
                 value = list(result.values())[0]
                 return f"Based on the database, {value}."
-            else:
-                # Single row result
-                summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
-                return f"Here's what I found: {summary}."
+            # Single row result
+            summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
+            return f"Here's what I found: {summary}."
+
         else:
             # Multiple results
             if len(sql_result) <= 10:
@@ -205,10 +208,11 @@ class AISQLGenerator:
                     summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
                     summaries.append(f"{i}. {summary}")
                 return f"I found {len(sql_result)} results:\n" + "\n".join(summaries)
-            else:
-                # Show first few and count
-                summaries = []
-                for i, result in enumerate(sql_result[:5], 1):
-                    summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
-                    summaries.append(f"{i}. {summary}")
-                return f"I found {len(sql_result)} results. Here are the first 5:\n" + "\n".join(summaries) + f"\n... and {len(sql_result) - 5} more results."
+
+            # Show first few and count
+            summaries = []
+            for i, result in enumerate(sql_result[:5], 1):
+                summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
+                summaries.append(f"{i}. {summary}")
+            return (f"I found {len(sql_result)} results. Here are the first 5:\n" + "\n".
+            join(summaries) +f"\n... and {len(sql_result) - 5} more results.")

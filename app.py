@@ -129,7 +129,7 @@ def health_check():
     try:
         # Test database connection
         with DatabaseConnection() as database:
-            db.test_connection()
+            database.test_connection()
 
         # Get usage stats
         usage_stats = rate_limiter.get_usage_stats()
@@ -167,12 +167,12 @@ def get_schema():
         return jsonify({'error': str(e)}), 500
 
 @app.errorhandler(404)
-def not_found(error):
+def not_found():
     """Not found error handler"""
     return jsonify({'error': 'Endpoint not found'}), 404
 
 @app.errorhandler(500)
-def internal_error(error):
+def internal_error():
     """Internal server error handler"""
     return jsonify({'error': 'Internal server error'}), 500
 

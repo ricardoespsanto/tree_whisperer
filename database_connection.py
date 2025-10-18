@@ -71,7 +71,7 @@ class DatabaseConnection:
             if not self.connection or not self.connection.is_connected():
                 return self.connect()
             return True
-        except Exception as e:
+        except (AttributeError, ValueError) as e:
             self.logger.error("Connection test failed: %s", e)
             return False
 
@@ -98,7 +98,7 @@ class DatabaseConnection:
             return table_info
 
         except (AttributeError, ValueError) as e:
-            self.logger.error(f"Error getting table info: %s", e)
+            self.logger.error("Error getting table info: %s", e)
             return {}
 
     def __enter__(self):
