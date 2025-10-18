@@ -1,10 +1,15 @@
+"""AI SQL generator module for Tree Whisperer application."""
+
+import re
+from typing import Dict, List, Tuple
+
 import openai
 import sqlparse
-import re
-from typing import Dict, List, Optional, Tuple
 from config import Config
 
 class AISQLGenerator:
+    """AI SQL generator for Tree Whisperer application."""
+    
     def __init__(self):
         self.client = openai.OpenAI(api_key=Config.OPENAI_API_KEY)
         self.model = Config.OPENAI_MODEL
@@ -98,7 +103,7 @@ class AISQLGenerator:
 
             return True, "SQL is valid"
 
-        except Exception as e:
+        except (AttributeError, ValueError) as e:
             return False, f"SQL parsing error: {str(e)}"
 
     def generate_sql(self, question: str, conversation_history: List[Dict] = None) -> Dict:
@@ -166,7 +171,7 @@ class AISQLGenerator:
                 'error': None
             }
 
-        except Exception as e:
+        except (AttributeError, ValueError) as e:
             return {
                 'success': False,
                 'error': f'Error generating SQL: {str(e)}',
@@ -174,7 +179,7 @@ class AISQLGenerator:
                 'explanation': None
             }
 
-    def format_response(self, question: str, sql_result: List[Dict], explanation: str) -> str:
+    def format_response(self, sql_result: List[Dict]) -> str:
         """Format the final response for the user"""
         if not sql_result:
             return "I found no data matching your query. The database may not contain information for the specific criteria you mentioned."

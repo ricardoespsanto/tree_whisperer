@@ -1,10 +1,16 @@
+"""Database connection module for Tree Whisperer application."""
+
+import logging
+from typing import List, Dict, Optional
+
 import mysql.connector
 from mysql.connector import Error
-from typing import List, Dict, Optional
-import logging
+
 from config import Config
 
 class DatabaseConnection:
+    """Handles MySQL database connections and query execution."""
+    
     def __init__(self):
         self.config = {
             'host': Config.DB_HOST,
@@ -27,7 +33,7 @@ class DatabaseConnection:
                 self.logger.info("Successfully connected to MySQL database")
                 return True
         except Error as e:
-            self.logger.error(f"Error connecting to MySQL: {e}")
+            self.logger.error("Error connecting to MySQL: %s", e)
             return False
         return False
 
@@ -41,7 +47,7 @@ class DatabaseConnection:
         """Execute a SELECT query and return results as list of dictionaries"""
         if not self.connection or not self.connection.is_connected():
             if not self.connect():
-                raise Exception("Could not connect to database")
+                raise ConnectionError("Could not connect to database")
 
         try:
             cursor = self.connection.cursor(dictionary=True)
@@ -49,15 +55,15 @@ class DatabaseConnection:
             results = cursor.fetchall()
             cursor.close()
 
-            self.logger.info(f"Query executed successfully, returned {len(results)} rows")
+            self.logger.info("Query executed successfully, returned %d rows", len(results))
             return results
 
         except Error as e:
-            self.logger.error(f"Error executing query: {e}")
-            raise Exception(f"Database error: {str(e)}")
-        except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
-            raise Exception(f"Query execution error: {str(e)}")
+            self.logger.error("Error executing query: %s", e)
+            raise ConnectionError(f"Database error: {str(e)}") from e
+        except (AttributeError, ValueError) as e:
+            self.logger.error("Unexpected error: %s", e)
+            raise RuntimeError(f"Query execution error: {str(e)}") from e
 
     def test_connection(self) -> bool:
         """Test the database connection"""
@@ -66,7 +72,7 @@ class DatabaseConnection:
                 return self.connect()
             return True
         except Exception as e:
-            self.logger.error(f"Connection test failed: {e}")
+            self.logger.error("Connection test failed: %s", e)
             return False
 
     def get_table_info(self) -> Dict:
@@ -91,8 +97,8 @@ class DatabaseConnection:
             cursor.close()
             return table_info
 
-        except Exception as e:
-            self.logger.error(f"Error getting table info: {e}")
+        except (AttributeError, ValueError) as e:
+            self.logger.error(f"Error getting table info: %s", e)
             return {}
 
     def __enter__(self):

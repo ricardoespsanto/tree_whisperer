@@ -1,9 +1,8 @@
+import logging
+from datetime import datetime
+
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import logging
-import json
-from datetime import datetime
-from typing import Dict, List
 
 from config import Config
 from ai_sql_generator import AISQLGenerator
@@ -84,8 +83,8 @@ def chat():
 
         # Execute SQL query
         try:
-            with DatabaseConnection() as db:
-                query_results = db.execute_query(sql_result['sql'])
+            with DatabaseConnection() as database:
+                query_results = database.execute_query(sql_result['sql'])
 
                 # Format response
                 response = ai_generator.format_response(question, query_results, sql_result['explanation'])
@@ -104,8 +103,8 @@ def chat():
                     'error': None
                 })
 
-        except Exception as db_error:
-            logging.error(f"Database error: {str(db_error)}")
+        except (ConnectionError, AttributeError, ValueError) as db_error:
+            logging.error("Database error: %s", str(db_error))
             return jsonify({
                 'success': False,
                 'error': f'Database error: {str(db_error)}',
@@ -183,8 +182,8 @@ if __name__ == '__main__':
                 logging.info("Database connection test successful")
             else:
                 logging.error("Database connection test failed")
-    except Exception as e:
-        logging.error(f"Failed to connect to database: {e}")
+    except (ConnectionError, ImportError, AttributeError) as e:
+        logging.error("Failed to connect to database: %s", e)
 
     app.run(
         host=Config.HOST,
