@@ -42,16 +42,16 @@ class DatabaseConnection:
         if not self.connection or not self.connection.is_connected():
             if not self.connect():
                 raise Exception("Could not connect to database")
-        
+
         try:
             cursor = self.connection.cursor(dictionary=True)
             cursor.execute(sql, params)
             results = cursor.fetchall()
             cursor.close()
-            
+
             self.logger.info(f"Query executed successfully, returned {len(results)} rows")
             return results
-            
+
         except Error as e:
             self.logger.error(f"Error executing query: {e}")
             raise Exception(f"Database error: {str(e)}")
@@ -75,22 +75,22 @@ class DatabaseConnection:
             if not self.connection or not self.connection.is_connected():
                 if not self.connect():
                     return {}
-            
+
             cursor = self.connection.cursor(dictionary=True)
-            
+
             # Get table names
             cursor.execute("SHOW TABLES")
             tables = [row[f'Tables_in_{Config.DB_NAME}'] for row in cursor.fetchall()]
-            
+
             table_info = {}
             for table in tables:
                 cursor.execute(f"DESCRIBE {table}")
                 columns = cursor.fetchall()
                 table_info[table] = [col['Field'] for col in columns]
-            
+
             cursor.close()
             return table_info
-            
+
         except Exception as e:
             self.logger.error(f"Error getting table info: {e}")
             return {}

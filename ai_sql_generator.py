@@ -8,42 +8,42 @@ class AISQLGenerator:
     def __init__(self):
         self.client = openai.OpenAI(api_key=Config.OPENAI_API_KEY)
         self.model = Config.OPENAI_MODEL
-        
+
         # Database schema context for the AI
         self.schema_context = """
         Database Schema for Tree and Forest Data:
-        
+
         Tables:
         1. tree_species: Contains information about different tree species
            - id, scientific_name, common_name, family, genus, species
            - native_region, max_height_meters, max_diameter_cm, lifespan_years
            - growth_rate, wood_density
-        
+
         2. forest_regions: Contains information about forest areas
            - id, region_name, country, state_province, latitude, longitude
            - area_hectares, forest_type, climate_zone, elevation_meters
-        
+
         3. forest_inventory: Tracks trees in specific forests over time
            - forest_region_id, tree_species_id, year_recorded, tree_count
            - average_height_meters, average_diameter_cm, total_biomass_kg
            - carbon_storage_kg, health_status
-        
+
         4. logging_records: Records of tree harvesting
            - forest_region_id, tree_species_id, year_logged, trees_logged
            - volume_cubic_meters, value_usd, logging_type, sustainability_certification
-        
+
         5. forest_growth: Tracks forest area changes over time
            - forest_region_id, year_measured, total_area_hectares
            - forest_cover_percentage, net_growth_hectares, deforestation_hectares
            - reforestation_hectares, carbon_sequestration_tonnes, biodiversity_index
         """
-        
+
         self.system_prompt = f"""
-        You are an AI assistant specialized in generating SQL queries for a tree and forest database. 
+        You are an AI assistant specialized in generating SQL queries for a tree and forest database.
         Your role is to convert natural language questions about trees, forests, and ecosystems into accurate SQL queries.
-        
+
         {self.schema_context}
-        
+
         IMPORTANT RULES:
         1. You can ONLY generate SELECT statements - no INSERT, UPDATE, DELETE, DROP, or other modifying operations
         2. You must stay strictly within the domain of trees, forests, ecosystems, and related environmental data
@@ -53,7 +53,7 @@ class AISQLGenerator:
         6. Include ORDER BY clauses when ranking or finding extremes
         7. Use aggregate functions (COUNT, SUM, AVG, MAX, MIN) when appropriate
         8. Be precise with column names and table names as shown in the schema
-        
+
         Response format:
         1. First, explain your reasoning for the query
         2. Then provide the SQL query
@@ -70,7 +70,7 @@ class AISQLGenerator:
             'height', 'diameter', 'growth', 'age', 'lifespan', 'density', 'volume',
             'region', 'climate', 'elevation', 'area', 'hectares', 'acres'
         ]
-        
+
         question_lower = question.lower()
         return any(keyword in question_lower for keyword in tree_forest_keywords)
 
@@ -79,31 +79,31 @@ class AISQLGenerator:
         try:
             # Parse the SQL to check for dangerous operations
             parsed = sqlparse.parse(sql)
-            
+
             for statement in parsed:
                 # Check if it's a SELECT statement
                 if not statement.get_type() == 'SELECT':
                     return False, "Only SELECT statements are allowed"
-                
+
                 # Check for dangerous keywords
                 dangerous_keywords = [
-                    'insert', 'update', 'delete', 'drop', 'create', 'alter', 
+                    'insert', 'update', 'delete', 'drop', 'create', 'alter',
                     'truncate', 'grant', 'revoke', 'exec', 'execute', 'sp_'
                 ]
-                
+
                 sql_lower = sql.lower()
                 for keyword in dangerous_keywords:
                     if keyword in sql_lower:
                         return False, f"Dangerous keyword '{keyword}' detected"
-            
+
             return True, "SQL is valid"
-            
+
         except Exception as e:
             return False, f"SQL parsing error: {str(e)}"
 
     def generate_sql(self, question: str, conversation_history: List[Dict] = None) -> Dict:
         """Generate SQL query from natural language question"""
-        
+
         # Check if question is tree/forest related
         if not self.is_tree_forest_related(question):
             return {
@@ -112,16 +112,16 @@ class AISQLGenerator:
                 'sql': None,
                 'explanation': None
             }
-        
+
         # Build conversation context
         messages = [{"role": "system", "content": self.system_prompt}]
-        
+
         if conversation_history:
             for msg in conversation_history[-5:]:  # Last 5 messages for context
                 messages.append(msg)
-        
+
         messages.append({"role": "user", "content": question})
-        
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -129,15 +129,15 @@ class AISQLGenerator:
                 temperature=0.1,  # Low temperature for consistent SQL generation
                 max_tokens=1000
             )
-            
+
             ai_response = response.choices[0].message.content
-            
+
             # Extract SQL from the response
             sql_match = re.search(r'```sql\s*(.*?)\s*```', ai_response, re.DOTALL | re.IGNORECASE)
             if not sql_match:
                 # Try to find SQL without code blocks
                 sql_match = re.search(r'(SELECT\s+.*?)(?:\n\n|\Z)', ai_response, re.DOTALL | re.IGNORECASE)
-            
+
             if not sql_match:
                 return {
                     'success': False,
@@ -145,12 +145,12 @@ class AISQLGenerator:
                     'sql': None,
                     'explanation': ai_response
                 }
-            
+
             sql_query = sql_match.group(1).strip()
-            
+
             # Validate the SQL
             is_valid, validation_message = self.validate_sql(sql_query)
-            
+
             if not is_valid:
                 return {
                     'success': False,
@@ -158,14 +158,14 @@ class AISQLGenerator:
                     'sql': sql_query,
                     'explanation': ai_response
                 }
-            
+
             return {
                 'success': True,
                 'sql': sql_query,
                 'explanation': ai_response,
                 'error': None
             }
-            
+
         except Exception as e:
             return {
                 'success': False,
@@ -178,7 +178,7 @@ class AISQLGenerator:
         """Format the final response for the user"""
         if not sql_result:
             return "I found no data matching your query. The database may not contain information for the specific criteria you mentioned."
-        
+
         # Create a summary based on the results
         if len(sql_result) == 1:
             result = sql_result[0]

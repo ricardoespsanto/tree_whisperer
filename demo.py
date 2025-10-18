@@ -12,7 +12,7 @@ def show_project_structure():
     """Display the project structure"""
     print("🌲 Tree Whisperer - Project Structure")
     print("=" * 50)
-    
+
     structure = {
         "📁 tree_whisperer/": {
             "📄 app.py": "Main Flask application",
@@ -37,7 +37,7 @@ def show_project_structure():
             }
         }
     }
-    
+
     def print_structure(items, indent=0):
         for key, value in items.items():
             print("  " * indent + key)
@@ -52,7 +52,7 @@ def show_features():
     """Display key features"""
     print("\n🚀 Key Features")
     print("=" * 30)
-    
+
     features = [
         "🤖 AI-Powered SQL Generation - Converts natural language to SQL",
         "🌲 Tree & Forest Domain Focus - Only answers forest-related questions",
@@ -64,7 +64,7 @@ def show_features():
         "🛡️ Rate Limiting - Per-minute and daily query limits with alerts",
         "📈 Scalable Architecture - Redis caching, Nginx load balancing"
     ]
-    
+
     for feature in features:
         print(f"  {feature}")
 
@@ -72,7 +72,7 @@ def show_database_schema():
     """Display database schema overview"""
     print("\n🗄️ Database Schema")
     print("=" * 25)
-    
+
     schema = {
         "tree_species": [
             "id, scientific_name, common_name, family, genus, species",
@@ -101,7 +101,7 @@ def show_database_schema():
             "carbon_sequestration_tonnes, biodiversity_index"
         ]
     }
-    
+
     for table, columns in schema.items():
         print(f"\n📋 {table}:")
         for column in columns:
@@ -111,7 +111,7 @@ def show_example_questions():
     """Display example questions the AI can answer"""
     print("\n💡 Example Questions")
     print("=" * 25)
-    
+
     questions = [
         "What is the tallest tree species in the database?",
         "How many white oaks were logged in Maine last year?",
@@ -124,7 +124,7 @@ def show_example_questions():
         "How much carbon is stored in California Redwood Forest?",
         "Which forest has the highest biodiversity index?"
     ]
-    
+
     for i, question in enumerate(questions, 1):
         print(f"  {i:2d}. {question}")
 
@@ -132,7 +132,7 @@ def show_deployment_steps():
     """Display deployment steps"""
     print("\n🚀 Deployment Steps")
     print("=" * 25)
-    
+
     steps = [
         "1. Install Docker and Docker Compose",
         "2. Set up environment variables (OPENAI_API_KEY, SECRET_KEY)",
@@ -140,7 +140,7 @@ def show_deployment_steps():
         "4. Access: http://your-server-ip",
         "5. Configure domain and SSL (optional)"
     ]
-    
+
     for step in steps:
         print(f"  {step}")
 
@@ -148,7 +148,7 @@ def show_security_features():
     """Display security features"""
     print("\n🔒 Security Features")
     print("=" * 25)
-    
+
     security = [
         "✅ Read-only database access - Only SELECT queries allowed",
         "✅ SQL injection prevention - Input validation and sanitization",
@@ -159,7 +159,7 @@ def show_security_features():
         "✅ Input sanitization - XSS and injection protection",
         "✅ Secure headers - X-Frame-Options, HSTS, etc."
     ]
-    
+
     for feature in security:
         print(f"  {feature}")
 
@@ -167,7 +167,7 @@ def show_tech_stack():
     """Display technology stack"""
     print("\n🛠️ Technology Stack")
     print("=" * 25)
-    
+
     tech = {
         "Backend": "Python 3.11, Flask, OpenAI GPT-3.5 Turbo",
         "Database": "MySQL 8.0 with comprehensive forest schema",
@@ -178,7 +178,7 @@ def show_tech_stack():
         "Security": "Rate limiting, input validation, SQL safety checks",
         "Monitoring": "Health checks, usage statistics, error logging"
     }
-    
+
     for category, technologies in tech.items():
         print(f"  {category}: {technologies}")
 
@@ -188,7 +188,7 @@ def main():
     print("=" * 60)
     print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
-    
+
     show_project_structure()
     show_features()
     show_database_schema()
@@ -196,7 +196,7 @@ def main():
     show_tech_stack()
     show_security_features()
     show_deployment_steps()
-    
+
     print("\n" + "=" * 60)
     print("🎉 Tree Whisperer is ready for deployment!")
     print("\nNext steps:")

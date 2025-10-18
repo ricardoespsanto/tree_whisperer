@@ -44,14 +44,14 @@ def chat():
         question = data.get('question', '').strip()
         user_id = data.get('user_id', 'anonymous')
         session_id = data.get('session_id', 'default')
-        
+
         if not question:
             return jsonify({
                 'success': False,
                 'error': 'No question provided',
                 'response': None
             }), 400
-        
+
         # Check rate limiting
         is_allowed, rate_message = rate_limiter.check_rate_limit(user_id)
         if not is_allowed:
@@ -60,20 +60,20 @@ def chat():
                 'error': rate_message,
                 'response': None
             }), 429
-        
+
         # Get conversation history for context
         history_key = f"{user_id}_{session_id}"
         conversation = conversation_history.get(history_key, [])
-        
+
         # Generate SQL query
         sql_result = ai_generator.generate_sql(question, conversation)
-        
+
         if not sql_result['success']:
             # Add to conversation history
             conversation.append({'role': 'user', 'content': question})
             conversation.append({'role': 'assistant', 'content': sql_result['error']})
             conversation_history[history_key] = conversation[-10:]  # Keep last 10 messages
-            
+
             return jsonify({
                 'success': False,
                 'error': sql_result['error'],
@@ -81,20 +81,20 @@ def chat():
                 'sql': None,
                 'explanation': sql_result.get('explanation')
             })
-        
+
         # Execute SQL query
         try:
             with DatabaseConnection() as db:
                 query_results = db.execute_query(sql_result['sql'])
-                
+
                 # Format response
                 response = ai_generator.format_response(question, query_results, sql_result['explanation'])
-                
+
                 # Add to conversation history
                 conversation.append({'role': 'user', 'content': question})
                 conversation.append({'role': 'assistant', 'content': response})
                 conversation_history[history_key] = conversation[-10:]  # Keep last 10 messages
-                
+
                 return jsonify({
                     'success': True,
                     'response': response,
@@ -103,7 +103,7 @@ def chat():
                     'data': query_results,
                     'error': None
                 })
-                
+
         except Exception as db_error:
             logging.error(f"Database error: {str(db_error)}")
             return jsonify({
@@ -113,7 +113,7 @@ def chat():
                 'sql': sql_result['sql'],
                 'explanation': sql_result['explanation']
             }), 500
-            
+
     except Exception as e:
         logging.error(f"Unexpected error in chat endpoint: {str(e)}")
         return jsonify({
@@ -131,10 +131,10 @@ def health_check():
         # Test database connection
         with DatabaseConnection() as db:
             db.test_connection()
-        
+
         # Get usage stats
         usage_stats = rate_limiter.get_usage_stats()
-        
+
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
@@ -185,7 +185,7 @@ if __name__ == '__main__':
                 logging.error("Database connection test failed")
     except Exception as e:
         logging.error(f"Failed to connect to database: {e}")
-    
+
     app.run(
         host=Config.HOST,
         port=Config.PORT,
