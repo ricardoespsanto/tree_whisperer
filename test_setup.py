@@ -4,8 +4,12 @@ Test script to verify Tree Whisperer setup
 """
 
 import sys
-import os
-import importlib.util
+import mysql.connector
+from dotenv import load_dotenv
+from config import Config
+from ai_sql_generator import AISQLGenerator
+from database_connection import DatabaseConnection
+from rate_limiter import RateLimiter
 
 def test_imports():
     """Test if all required modules can be imported"""
@@ -24,12 +28,7 @@ def test_imports():
 
     for module in required_modules:
         try:
-            if module == 'mysql.connector':
-                import mysql.connector
-            elif module == 'dotenv':
-                from dotenv import load_dotenv
-            else:
-                __import__(module)
+            __import__(module)
             print(f"  ✅ {module}")
         except ImportError as e:
             print(f"  ❌ {module}: {e}")
@@ -48,15 +47,14 @@ def test_config():
     print("\n🔧 Testing configuration...")
 
     try:
-        from config import Config
-        print(f"  ✅ Config loaded")
-        print(f"  - DB Host: {Config.DB_HOST}")
-        print(f"  - DB Name: {Config.DB_NAME}")
-        print(f"  - OpenAI Model: {Config.OPENAI_MODEL}")
-        print(f"  - Rate Limit: {Config.RATE_LIMIT_PER_MINUTE}/min")
+        print("  ✅ Config loaded")
+        print("  - DB Host: {Config.DB_HOST}")
+        print("  - DB Name: {Config.DB_NAME}")
+        print("  - OpenAI Model: {Config.OPENAI_MODEL}")
+        print("  - Rate Limit: {Config.RATE_LIMIT_PER_MINUTE}/min")
         return True
-    except Exception as e:
-        print(f"  ❌ Config error: {e}")
+    except (AttributeError, ValueError) as e:
+        print("  ❌ Config error: %e", e)
         return False
 
 def test_database_connection():
@@ -64,8 +62,6 @@ def test_database_connection():
     print("\n🗄️ Testing database connection...")
 
     try:
-        from database_connection import DatabaseConnection
-
         with DatabaseConnection() as db:
             if db.test_connection():
                 print("  ✅ Database connection successful")
@@ -78,11 +74,11 @@ def test_database_connection():
                     print("  ⚠️ No data found in database")
 
                 return True
-            else:
-                print("  ❌ Database connection failed")
-                return False
-    except Exception as e:
-        print(f"  ❌ Database error: {e}")
+
+            print("  ❌ Database connection failed")
+            return False
+    except (AttributeError, ValueError) as e:
+        print("  ❌ Database error: %e", e)
         print("  💡 Make sure MySQL is running and database is set up")
         return False
 
@@ -91,8 +87,6 @@ def test_ai_generator():
     print("\n🤖 Testing AI SQL generator...")
 
     try:
-        from ai_sql_generator import AISQLGenerator
-
         generator = AISQLGenerator()
 
         # Test domain validation
@@ -132,8 +126,8 @@ def test_ai_generator():
         print("  ✅ AI SQL generator tests passed")
         return True
 
-    except Exception as e:
-        print(f"  ❌ AI generator error: {e}")
+    except (AttributeError, ValueError) as e:
+        print("  ❌ AI generator error: %e", e)
         return False
 
 def test_rate_limiter():
@@ -141,8 +135,6 @@ def test_rate_limiter():
     print("\n⏱️ Testing rate limiter...")
 
     try:
-        from rate_limiter import RateLimiter
-
         limiter = RateLimiter()
 
         # Test rate limit check
@@ -164,8 +156,8 @@ def test_rate_limiter():
         print("  ✅ Rate limiter tests passed")
         return True
 
-    except Exception as e:
-        print(f"  ❌ Rate limiter error: {e}")
+    except (AttributeError, ValueError) as e:
+        print("  ❌ Rate limiter error: %e", e)
         return False
 
 def main():

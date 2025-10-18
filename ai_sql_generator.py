@@ -199,7 +199,7 @@ class AISQLGenerator:
             summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
             return f"Here's what I found: {summary}."
 
-    
+
         # Multiple results
         if len(sql_result) <= 10:
             # Show all results
