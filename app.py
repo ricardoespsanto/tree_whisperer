@@ -1,3 +1,4 @@
+"""Main application module for Tree Whisperer application."""
 import logging
 from datetime import datetime
 
@@ -179,8 +180,8 @@ def internal_error():
 if __name__ == '__main__':
     # Test database connection on startup
     try:
-        with DatabaseConnection() as db:
-            if db.test_connection():
+        with DatabaseConnection() as database:
+            if database.test_connection():
                 logging.info("Database connection test successful")
             else:
                 logging.error("Database connection test failed")

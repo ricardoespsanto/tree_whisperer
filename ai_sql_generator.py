@@ -9,7 +9,7 @@ from config import Config
 
 class AISQLGenerator:
     """AI SQL generator for Tree Whisperer application."""
-    
+
     def __init__(self):
         self.client = openai.OpenAI(api_key=Config.OPENAI_API_KEY)
         self.model = Config.OPENAI_MODEL
@@ -199,20 +199,20 @@ class AISQLGenerator:
             summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
             return f"Here's what I found: {summary}."
 
-        else:
-            # Multiple results
-            if len(sql_result) <= 10:
-                # Show all results
-                summaries = []
-                for i, result in enumerate(sql_result, 1):
-                    summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
-                    summaries.append(f"{i}. {summary}")
-                return f"I found {len(sql_result)} results:\n" + "\n".join(summaries)
-
-            # Show first few and count
+    
+        # Multiple results
+        if len(sql_result) <= 10:
+            # Show all results
             summaries = []
-            for i, result in enumerate(sql_result[:5], 1):
+            for i, result in enumerate(sql_result, 1):
                 summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
                 summaries.append(f"{i}. {summary}")
-            return (f"I found {len(sql_result)} results. Here are the first 5:\n" + "\n".
-            join(summaries) +f"\n... and {len(sql_result) - 5} more results.")
+            return f"I found {len(sql_result)} results:\n" + "\n".join(summaries)
+
+        # Show first few and count
+        summaries = []
+        for i, result in enumerate(sql_result[:5], 1):
+            summary = ", ".join([f"{k}: {v}" for k, v in result.items()])
+            summaries.append(f"{i}. {summary}")
+        return (f"I found {len(sql_result)} results. Here are the first 5:\n" + "\n".
+        join(summaries) +f"\n... and {len(sql_result) - 5} more results.")

@@ -10,7 +10,7 @@ from config import Config
 
 class DatabaseConnection:
     """Handles MySQL database connections and query execution."""
-    
+
     def __init__(self):
         self.config = {
             'host': Config.DB_HOST,

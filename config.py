@@ -6,7 +6,12 @@ load_dotenv()
 
 class Config:
     """Configuration for Tree Whisperer application."""
-    
+
+    @classmethod
+    def get_database_url(cls):
+        """Get database connection URL."""
+        return f"mysql://{cls.DB_USER}:{cls.DB_PASSWORD}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
+
     # Database Configuration
     DB_HOST = os.getenv('DB_HOST', 'localhost')
     DB_PORT = int(os.getenv('DB_PORT', '3306'))
